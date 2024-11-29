@@ -1,70 +1,83 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Weather App - Lab Test 2
 
-## Available Scripts
+## Introduction
+This Weather App provides current weather data and a 5-day forecast for a user-specified location. The application dynamically updates the background based on the weather condition (e.g., sunny, cloudy, rainy) and offers a detailed 3-hour forecast when clicking on any day in the 5-day forecast.
 
-In the project directory, you can run:
+## Features
+- **Current Weather Display**: Shows the temperature, weather condition, humidity, and wind speed for the selected city.
+- **5-Day Forecast**: Displays weather data for the next five days, including temperature and weather icons.
+- **3-Hour Forecast**: Detailed forecast for the selected day.
+- **Dynamic Backgrounds**: Updates based on weather conditions.
+- **Responsive Design**: Adjusts to various screen sizes.
 
-### `npm start`
+## How to Run the Application
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd weather-app
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Start the development server:
+   ```bash
+   npm start
+   ```
+5. Open `http://localhost:3000` in your web browser.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## API Usage
+The app uses the OpenWeatherMap API for weather data. To use the app:
+1. Sign up for an API key at [OpenWeatherMap](https://openweathermap.org/).
+2. Replace the `API_KEY` variable in the `Weather.js` file with your own API key.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Postman Usage
+To verify API responses:
+1. Set up Postman and create a GET request with the URL:
+   ```
+   https://api.openweathermap.org/data/2.5/weather?q={CITY_NAME}&appid={YOUR_API_KEY}&units=metric
+   ```
+2. Replace `{CITY_NAME}` with the desired city and `{YOUR_API_KEY}` with your API key.
+3. Refer to the screenshots below for example Postman results.
 
-### `npm test`
+## Outputs
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Weather App Screenshots 
+#### Cloudy:
+![Cloudy](./public/cloudy_output.png)
 
-### `npm run build`
+#### Rainy:
+![Rainy](./public/rainy_output.png)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### Sunny:
+![Sunny](./public/sunny_output.png)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+#### Weather App 3 Hour forecast when clicking “Click for more details”:
+![Weather App 3 Hour forecast when clicking “Click for more details”](./public/3.png)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Postman Screenshots
+#### Part 1
+![Postman Part 1](./public/Postman_Part1.png)
 
-### `npm run eject`
+#### Part 2
+![Postman Part 2](./public/Postman_Part2.png)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Technologies Used
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **React**: Front-end library for building user interfaces.
+- **Material-UI**: Styling and component library for React.
+- **Axios**: HTTP client for making API requests.
+- **OpenWeatherMap API**: Provides weather data.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+## Credits
+Developed for Lab Test 2 as part of the coursework.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## License
+This project is licensed under the MIT License.
