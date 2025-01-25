@@ -10,7 +10,7 @@ const Weather = () => {
     const [error, setError] = useState("");
     const [background, setBackground] = useState("default.jpg");
 
-    const API_KEY = "8305797c3c2797b39dfd854d016e3d2e";
+    const API_KEY = process.env.REACT_APP_API_KEY;
 
     const fetchWeather = async (cityName) => {
         if (!cityName) return;
@@ -41,11 +41,11 @@ const Weather = () => {
 
             const condition = currentResponse.data.weather[0].main.toLowerCase();
             switch (condition) {
-                case "clouds":
-                    setBackground("cloudy.jpg");
+                case "thunderstorm":
+                    setBackground("thunderstorm.jpg");
                     break;
-                case "clear":
-                    setBackground("sunny.jpg");
+                case "drizzle":
+                    setBackground("drizzle.jpg");
                     break;
                 case "rain":
                     setBackground("rainy.jpg");
@@ -53,8 +53,28 @@ const Weather = () => {
                 case "snow":
                     setBackground("snowy.jpg");
                     break;
-                case "thunderstorm":
-                    setBackground("stormy.jpg");
+                case "mist":
+                case "haze":
+                case "fog":
+                    setBackground("foggy.jpg");
+                    break;
+                case "smoke":
+                case "dust":
+                case "ash":
+                case "sand":
+                    setBackground("dusty.jpg"); // need
+                    break;
+                case "squall":
+                    setBackground("windy.jpg"); // need
+                    break;
+                case "tornado":
+                    setBackground("tornado.jpg"); // need
+                    break;
+                case "clear":
+                    setBackground("sunny.jpg");
+                    break;
+                case "clouds":
+                    setBackground("cloudy.jpg");
                     break;
                 default:
                     setBackground("default.jpg");
@@ -122,5 +142,7 @@ const Weather = () => {
         </Box>
     );
 };
+
+
 
 export default Weather;
