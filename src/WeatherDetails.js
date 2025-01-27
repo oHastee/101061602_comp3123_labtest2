@@ -18,9 +18,8 @@ import {
     Twitter,
     Facebook,
     Telegram,
-    Chat,
-    Instagram,
-    Message
+    Message,
+    Attachment
 } from '@mui/icons-material';
 
 const WeatherDetails = ({ currentWeather, forecast, background }) => {
@@ -32,36 +31,49 @@ const WeatherDetails = ({ currentWeather, forecast, background }) => {
 
     const { main, weather, wind, name } = currentWeather;
 
-    // Group forecast by day
+    // Group forecast by day (in UTC)
     const groupedForecast = forecast.reduce((acc, entry) => {
-        const date = entry.dt_txt.split(" ")[0];
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(entry);
+        const dateStr = entry.dt_txt.split(" ")[0]; // e.g. "2025-01-26"
+        if (!acc[dateStr]) acc[dateStr] = [];
+        acc[dateStr].push(entry);
         return acc;
     }, {});
 
+    // When user clicks a day, we show *all* 3-hour blocks for that day
     const handleDayClick = (day) => {
-        setSelectedDayForecast(groupedForecast[day]);
+        const dayEntries = groupedForecast[day] || [];
+        // Sort by actual time so it’s in ascending order
+        dayEntries.sort((a, b) =>
+            new Date(a.dt_txt).getTime() - new Date(b.dt_txt).getTime()
+        );
+        setSelectedDayForecast(dayEntries);
         setOpen(true);
     };
 
+    // SHARE MENU
     const handleShareOpen = (event) => {
         setAnchorEl(event.currentTarget);
     };
-
     const handleShareClose = () => {
         setAnchorEl(null);
     };
 
     const handlePlatformShare = (platform) => {
-        const date = new Date(selectedDayForecast[0].dt_txt).toDateString();
-        const message = `Weather forecast for ${date}:\n${selectedDayForecast
-            .map(entry =>
-                `${new Date(entry.dt_txt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
-                ${entry.main.temp}°C - 
-                ${entry.weather[0].description}`
-            ).join('\n')}\n\nShared via Weather App`;
+        if (!selectedDayForecast.length) return;
 
+        // Build forecast text:
+        // Convert dt_txt from UTC => local time for each line
+        const dateStr = new Date(selectedDayForecast[0].dt_txt).toDateString();
+        const lines = selectedDayForecast.map((entry) => {
+            const localDate = new Date(entry.dt_txt.replace(" ", "T") + "Z");
+            const timeStr = localDate.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+            });
+            return `${timeStr} - ${entry.main.temp}°C - ${entry.weather[0].description}`;
+        });
+
+        const message = `Weather forecast for ${dateStr}:\n${lines.join("\n")}\n\nShared via Weather App`;
         const encodedMessage = encodeURIComponent(message);
         const appUrl = encodeURIComponent(window.location.href);
 
@@ -71,22 +83,17 @@ const WeatherDetails = ({ currentWeather, forecast, background }) => {
             facebook: `https://www.facebook.com/sharer/sharer.php?u=${appUrl}&quote=${encodedMessage}`,
             telegram: `https://t.me/share/url?url=${appUrl}&text=${encodedMessage}`,
             sms: `sms:?body=${encodedMessage}%0A${appUrl}`,
-            discord: () => {
-                navigator.clipboard.writeText(`${message}\n${appUrl}`);
-                alert('Copied to clipboard! Paste it in Discord');
-            },
-            instagram: () => {
-                navigator.clipboard.writeText(`${message}\n${appUrl}`);
-                alert('Copied to clipboard! Paste it in Instagram');
+            copy: () => {
+                navigator.clipboard.writeText(`${message}\n${decodeURIComponent(appUrl)}`);
+                alert("Copied forecast to your clipboard!");
             }
         };
 
-        if (typeof platforms[platform] === 'function') {
+        if (typeof platforms[platform] === "function") {
             platforms[platform]();
         } else {
-            window.open(platforms[platform], '_blank');
+            window.open(platforms[platform], "_blank");
         }
-
         handleShareClose();
     };
 
@@ -101,7 +108,7 @@ const WeatherDetails = ({ currentWeather, forecast, background }) => {
                 textAlign: "center",
             }}
         >
-            {/* Left Card */}
+            {/* Left Card: Current Weather */}
             <Card
                 sx={{
                     p: 3,
@@ -125,7 +132,7 @@ const WeatherDetails = ({ currentWeather, forecast, background }) => {
                 <Typography>Wind Speed: {wind.speed} m/s</Typography>
             </Card>
 
-            {/* Right Forecast Cards */}
+            {/* Right side: 5-day forecast summary */}
             <Box sx={{ width: "500px" }}>
                 <Typography
                     variant="h6"
@@ -142,8 +149,8 @@ const WeatherDetails = ({ currentWeather, forecast, background }) => {
                 <Grid container spacing={2}>
                     {Object.entries(groupedForecast)
                         .slice(0, 5)
-                        .map(([date, entries]) => (
-                            <Grid item xs={12} sm={6} md={4} key={date}>
+                        .map(([dateStr, entries]) => (
+                            <Grid item xs={12} sm={6} md={4} key={dateStr}>
                                 <Card
                                     sx={{
                                         backgroundColor: "rgba(255, 255, 255, 0.4)",
@@ -156,10 +163,10 @@ const WeatherDetails = ({ currentWeather, forecast, background }) => {
                                             transform: "translateY(-2px)"
                                         }
                                     }}
-                                    onClick={() => handleDayClick(date)}
+                                    onClick={() => handleDayClick(dateStr)}
                                 >
                                     <CardContent>
-                                        <Typography variant="subtitle1">{date}</Typography>
+                                        <Typography variant="subtitle1">{dateStr}</Typography>
                                         <Typography>
                                             Temp: {entries[0].main.temp}°C
                                         </Typography>
@@ -185,7 +192,7 @@ const WeatherDetails = ({ currentWeather, forecast, background }) => {
                 </Grid>
             </Box>
 
-            {/* Scrollable 3-Hour Forecast Modal */}
+            {/* 3-Hour Forecast Modal */}
             <Modal open={open} onClose={() => setOpen(false)}>
                 <Box
                     sx={{
@@ -208,7 +215,14 @@ const WeatherDetails = ({ currentWeather, forecast, background }) => {
                         background: 'linear-gradient(145deg, rgba(25,118,210,0.9) 0%, rgba(33,150,243,0.9) 100%)'
                     }}
                 >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            mb: 3
+                        }}
+                    >
                         <Typography
                             variant="h5"
                             sx={{
@@ -275,17 +289,13 @@ const WeatherDetails = ({ currentWeather, forecast, background }) => {
                             </ListItemIcon>
                             <ListItemText>Telegram</ListItemText>
                         </MenuItem>
-                        <MenuItem onClick={() => handlePlatformShare('discord')}>
+
+                        {/* Copy to Clipboard (paperclip) */}
+                        <MenuItem onClick={() => handlePlatformShare('copy')}>
                             <ListItemIcon>
-                                <Chat fontSize="small" />
+                                <Attachment fontSize="small" />
                             </ListItemIcon>
-                            <ListItemText>Discord</ListItemText>
-                        </MenuItem>
-                        <MenuItem onClick={() => handlePlatformShare('instagram')}>
-                            <ListItemIcon>
-                                <Instagram fontSize="small" />
-                            </ListItemIcon>
-                            <ListItemText>Instagram</ListItemText>
+                            <ListItemText>Copy to Clipboard</ListItemText>
                         </MenuItem>
                     </Menu>
 
@@ -309,7 +319,9 @@ const WeatherDetails = ({ currentWeather, forecast, background }) => {
                     >
                         <Grid container spacing={2}>
                             {selectedDayForecast.map((entry) => {
-                                const time = new Date(entry.dt_txt).toLocaleTimeString([], {
+                                // Convert the dt_txt to local
+                                const localDate = new Date(entry.dt_txt.replace(" ", "T") + "Z");
+                                const time = localDate.toLocaleTimeString([], {
                                     hour: '2-digit',
                                     minute: '2-digit'
                                 });
@@ -397,5 +409,3 @@ const WeatherDetails = ({ currentWeather, forecast, background }) => {
 };
 
 export default WeatherDetails;
-
-// Instead of sharing it to discord or instagram lets add a feature to copy info to clipboard
