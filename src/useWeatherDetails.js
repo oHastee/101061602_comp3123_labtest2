@@ -7,7 +7,7 @@ const useWeatherDetails = (currentWeather, forecast) => {
 
     /**
      * 1) Convert each forecast entry’s dt_txt from UTC to local date (YYYY-MM-DD).
-     * 2) Filter out today’s local date, because we’re showing that on the left card.
+     * 2) Filter out today's local date so we show only future days in 5-day forecast.
      * 3) Group the remaining days by date.
      */
     const groupForecastByLocalDate = (forecastList) => {
@@ -15,12 +15,11 @@ const useWeatherDetails = (currentWeather, forecast) => {
         const grouped = {};
 
         forecastList.forEach((entry) => {
-            // "dt_txt" might be "2025-01-29 15:00:00" UTC
-            // Append 'Z' so JS interprets it as UTC, then convert to local date.
+            // dt_txt ~ "2025-01-29 15:00:00" in UTC
+            // Append 'Z' so JS interprets as UTC, then convert to local date string.
             const dateObj = new Date(entry.dt_txt.replace(" ", "T") + "Z");
             const localDateStr = dateObj.toLocaleDateString("en-CA");
 
-            // Exclude today’s local date (since today’s weather is shown on the left card)
             if (localDateStr !== todayLocal) {
                 if (!grouped[localDateStr]) {
                     grouped[localDateStr] = [];
@@ -44,7 +43,7 @@ const useWeatherDetails = (currentWeather, forecast) => {
             return aTime - bTime;
         });
 
-        // Try to find one whose local hour is 14 (2 PM)
+        // Try to find local hour = 14 (2 PM)
         const twoPmEntry = sorted.find((entry) => {
             const hour = new Date(entry.dt_txt.replace(" ", "T") + "Z").getHours();
             return hour === 14;
@@ -53,30 +52,23 @@ const useWeatherDetails = (currentWeather, forecast) => {
         return twoPmEntry || sorted[Math.floor(sorted.length / 2)];
     };
 
-    /**
-     * Group all entries by local date (excluding today).
-     */
+    // Group the forecast (excluding today)
     const groupedForecast = groupForecastByLocalDate(forecast);
 
-    /**
-     * Identify the next 5 unique dates after today.
-     */
+    // Grab the next 5 sorted dates
     const sortedDates = Object.keys(groupedForecast).sort(
         (a, b) => new Date(a) - new Date(b)
     );
-    const nextFiveDates = sortedDates.slice(0, 5); // pick the next 5 days
+    const nextFiveDates = sortedDates.slice(0, 5);
 
-    /**
-     * Build an array of "representative" forecast entries for those 5 days.
-     * (Not strictly required by the UI, but we return it in case needed.)
-     */
+    // Build an array of representative entries (if you need them)
     const fiveDayForecast = nextFiveDates.map((date) => {
         const dayEntries = groupedForecast[date];
         return pickRepresentativeEntry(dayEntries);
     });
 
     /**
-     * Handle showing the full 3-hour forecast for a selected day.
+     * Show the full 3-hour forecast for a clicked day
      */
     const handleDayClick = (date) => {
         const dayEntries = groupedForecast[date] || [];
@@ -103,7 +95,6 @@ const useWeatherDetails = (currentWeather, forecast) => {
     const handlePlatformShare = (platform) => {
         if (!selectedDayForecast.length) return;
 
-        // Example: "Wed Jan 29 2025"
         const dateStr = new Date(
             selectedDayForecast[0].dt_txt.replace(" ", "T") + "Z"
         ).toDateString();
@@ -145,25 +136,16 @@ const useWeatherDetails = (currentWeather, forecast) => {
         handleShareClose();
     };
 
-    /**
-     * Expose hook state & functions
-     */
     return {
-        // Modal open state
+        // Modal state
         open,
         setOpen,
         anchorEl,
 
-        // For the left card (today’s weather is passed in directly)
+        // Data references
         currentWeather,
-
-        // For the next 5 days, if you need to use it
         fiveDayForecast,
-
-        // All forecast entries keyed by date (excluding today)
         groupedForecast,
-
-        // The array of 3-hour entries for whichever day was clicked
         selectedDayForecast,
 
         // Handlers
